@@ -1,0 +1,493 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">gotour/restapi/main.go (60.8%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package main
+
+// Package controller Dash Testrail API
+//
+// The purpose of this application is to store and retrieve Employee records
+//
+//
+//
+//     BasePath: /api/testrail/v1
+//     Version: 0.0.1
+//     License: Copy Right © 2019 GG Lab Private Limited
+
+//                All rights reserved.
+//                This material is confidential and proprietary to GS Lab Private Limited.
+//                No part of this material should be reproduced, published in any form by any means,
+//                electronic or mechanical including photocopy or any information storage or
+//                retrieval system nor shougo:generate swagger generate spec -m -o ./swagger.json
+//ld the material be disclosed to third parties without
+//                the express written authorization of GS Lab GS LabPrivate Limited.Licensed Materials -
+
+//
+//     Contact: Himansu Gupta &lt;himansu.gupta@gslab.com&gt;
+//
+//     Consumes:
+//       - application/json
+//
+//     Produces:
+//       - application/json
+//
+//     Security:
+//       - token:
+//
+//     SecurityDefinitions:
+//       token:
+//         type: apiKey
+//         in: header
+//         name: Authorization
+//
+//
+//                 swagger:meta
+
+//                go:generate swagger generate spec -m -o ./swagger.json
+
+import (
+        "encoding/json"
+        "fmt"
+        "gotour/databaseconnection"
+        "gotour/decodejson"
+        "log"
+        "net/http"
+
+        "github.com/gorilla/mux"
+)
+
+// GetEmployees from db
+func GetEmployees(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        fmt.Println("GET Employees  Implement")
+        //var employees []decodejson.Employee
+        var response decodejson.Response
+        err := databaseconnection.GetConnection()
+        if err != nil </span><span class="cov0" title="0">{
+                response.Status = "Time out"
+                response.Code = "504"
+                response.Message = "The server is unavailable to handle this request right now..!!"
+                w.WriteHeader(http.StatusGatewayTimeout)
+                json.NewEncoder(w).Encode(&amp;response)
+        }</span> else<span class="cov8" title="1"> {
+                w.Header().Add("Content-Type", "application/json")
+                employees, error := databaseconnection.FindAllEmployees()
+                if error != nil </span><span class="cov0" title="0">{
+                        fmt.Println("if DB Error Come")
+                        response.Status = "Time out"
+                        response.Code = "504"
+                        response.Message = "The server is unavailable to handle this request right now..!!"
+                        w.WriteHeader(http.StatusGatewayTimeout)
+                        json.NewEncoder(w).Encode(&amp;response)
+                }</span> else<span class="cov8" title="1"> {
+                        if len(employees) &gt; 0 </span><span class="cov8" title="1">{
+                                //fmt.Println("if DB Data Come")
+                                response.Status = "SUCCESS"
+                                response.Code = "200"
+                                response.Message = "Get Record successfuly..!!"
+                                response.Data = employees
+                                w.WriteHeader(http.StatusOK)
+                                json.NewEncoder(w).Encode(&amp;response)
+                        }</span> else<span class="cov8" title="1"> {
+                                //fmt.Println("if DB No Record ")
+                                response.Status = "No Content"
+                                response.Code = "204"
+                                response.Message = "DB is Empty,Record Not Found in DB..!!"
+                                response.Data = employees
+                                w.WriteHeader(http.StatusNoContent)
+                                json.NewEncoder(w).Encode(&amp;response)
+                        }</span>
+                }
+        }
+}
+
+// GetEmployeeByID from db
+func GetEmployeeByID(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        fmt.Println("GET Employee By ID Implement")
+        var employees []decodejson.Employee
+        //var employe decodejson.Employee
+        var response decodejson.Response
+        //databaseconnection.GetConnection()
+        params := mux.Vars(r)
+        //fmt.Println(len(params))
+        //fmt.Println("Searchin ID ", params["id"])
+        w.Header().Add("Content-Type", "application/json")
+
+        err := databaseconnection.GetConnection()
+        if err != nil </span><span class="cov0" title="0">{
+                response.Status = "Time out"
+                response.Code = "504"
+                response.Message = "The server is unavailable to handle this request right now..!!"
+                w.WriteHeader(http.StatusGatewayTimeout)
+                json.NewEncoder(w).Encode(&amp;response)
+        }</span> else<span class="cov8" title="1"> {
+
+                flag, error := databaseconnection.IsRecordExists(params["id"])
+                if error != nil </span><span class="cov0" title="0">{
+                        //        fmt.Println("In Error DB")
+                        response.Status = "Time out"
+                        response.Code = "504"
+                        response.Message = "The server is unavailable to handle this request right now..!!"
+                        w.WriteHeader(http.StatusGatewayTimeout)
+                        json.NewEncoder(w).Encode(&amp;response)
+                }</span>
+                <span class="cov8" title="1">if flag != false </span><span class="cov8" title="1">{
+                        employee, error := databaseconnection.FindByID(params["id"])
+
+                        if error != nil </span><span class="cov0" title="0">{
+                                response.Status = "Time out"
+                                response.Code = "504"
+                                response.Message = "The server is unavailable to handle this request right now..!!"
+                                w.WriteHeader(http.StatusGatewayTimeout)
+                                json.NewEncoder(w).Encode(&amp;response)
+                        }</span> else<span class="cov8" title="1"> {
+                                employees = append(employees, employee)
+                                response.Status = "SUCCESS"
+                                response.Code = "200"
+                                response.Message = "Get Record successfuly..!!"
+                                response.Data = employees
+                                w.WriteHeader(http.StatusOK)
+                                json.NewEncoder(w).Encode(&amp;response)
+                        }</span>
+                } else<span class="cov8" title="1"> {
+                        response.Status = "Failed"
+                        response.Code = "404"
+                        response.Message = "Invalid ID,Record Not Found in DB..!!"
+                        w.WriteHeader(http.StatusNotFound)
+                        //response.Data = employees
+                        json.NewEncoder(w).Encode(&amp;response)
+                }</span>
+        }
+}
+
+// AddNewEmployee from db
+func AddNewEmployee(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        fmt.Println("POSt -- Add Employee Implement")
+        var employees []decodejson.Employee
+        var employee decodejson.Employee
+        var response decodejson.Response
+        var decodeerror error
+        var dberror error
+        var flag bool
+        decodeerror = json.NewDecoder(r.Body).Decode(&amp;employee)
+        //employees[0] = employee
+        if decodeerror != nil </span><span class="cov0" title="0">{
+                response.Status = "Bad Request"
+                response.Code = "400"
+                response.Message = "Please have look API RequestBody..!!"
+                response.Data = employees
+                w.WriteHeader(http.StatusBadRequest)
+                json.NewEncoder(w).Encode(response)
+        }</span> else<span class="cov8" title="1"> {
+                err := databaseconnection.GetConnection()
+                if err != nil </span><span class="cov0" title="0">{
+                        response.Status = "Time out"
+                        response.Code = "504"
+                        response.Message = "The server is unavailable to handle this request right now..!!"
+                        w.WriteHeader(http.StatusGatewayTimeout)
+                        json.NewEncoder(w).Encode(&amp;response)
+                }</span> else<span class="cov8" title="1"> {
+                        if decodejson.IsValidRequest(&amp;employee) </span><span class="cov8" title="1">{
+                                flag, dberror = databaseconnection.IsRecordExists(employee.ID)
+
+                                if flag </span><span class="cov8" title="1">{
+                                        response.Status = "Conflict"
+                                        response.Code = "409"
+                                        response.Message = "Record alredy exists in DB..!!"
+                                        response.Data = employees
+                                        w.WriteHeader(http.StatusConflict)
+                                        json.NewEncoder(w).Encode(response)
+                                }</span> else<span class="cov8" title="1"> {
+                                        if dberror != nil </span><span class="cov0" title="0">{
+                                                response.Status = "Time out"
+                                                response.Code = "504"
+                                                response.Message = "The server is unavailable to handle this request right now..!!"
+                                                w.WriteHeader(http.StatusGatewayTimeout)
+                                                json.NewEncoder(w).Encode(&amp;response)
+                                        }</span> else<span class="cov8" title="1"> {
+                                                employee, error := databaseconnection.AddEmployee(employee)
+                                                //                fmt.Println(employee)
+                                                employees = append(employees, employee)
+                                                if error != nil </span><span class="cov0" title="0">{
+                                                        response.Status = "Time out"
+                                                        response.Code = "504"
+                                                        response.Message = "The server is unavailable to handle this request right now..!!"
+                                                        w.WriteHeader(http.StatusGatewayTimeout)
+                                                        json.NewEncoder(w).Encode(&amp;response)
+                                                }</span> else<span class="cov8" title="1"> {
+                                                        response.Status = "SUCCESS"
+                                                        response.Code = "200"
+                                                        response.Message = "Record added Successfuly..!!"
+                                                        response.Data = employees
+                                                        w.WriteHeader(http.StatusCreated)
+                                                        json.NewEncoder(w).Encode(response)
+                                                }</span>
+                                        }
+                                }
+                        } else<span class="cov8" title="1"> {
+                                response.Status = "Bad Request"
+                                response.Code = "400"
+                                response.Message = "Request Missing ID or Name!!"
+                                response.Data = employees
+                                w.WriteHeader(http.StatusBadRequest)
+                                json.NewEncoder(w).Encode(response)
+                        }</span>
+                }
+        }
+}
+
+//UpdateEmployeeByID update Employe
+func UpdateEmployeeByID(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        fmt.Println("POSt -- Update Employees Implement")
+        var employees []decodejson.Employee
+        var employee decodejson.Employee
+        var response decodejson.Response
+        var decodeerror error
+        var dberror error
+        var flag bool
+        decodeerror = json.NewDecoder(r.Body).Decode(&amp;employee)
+        //employees[0] = employee
+        if decodeerror != nil </span><span class="cov0" title="0">{
+                response.Status = "Bad Request"
+                response.Code = "400"
+                response.Message = "Please have look API RequestBody..!!"
+                response.Data = employees
+                w.WriteHeader(http.StatusBadRequest)
+                json.NewEncoder(w).Encode(response)
+        }</span> else<span class="cov8" title="1"> {
+                err := databaseconnection.GetConnection()
+                if err != nil </span><span class="cov0" title="0">{
+                        response.Status = "Time out"
+                        response.Code = "504"
+                        response.Message = "The server is unavailable to handle this request right now..!!"
+                        w.WriteHeader(http.StatusGatewayTimeout)
+                        json.NewEncoder(w).Encode(&amp;response)
+                }</span> else<span class="cov8" title="1"> {
+                        if decodejson.IsValidRequest(&amp;employee) </span><span class="cov8" title="1">{
+                                flag, dberror = databaseconnection.IsRecordExists(employee.ID)
+
+                                if !flag </span><span class="cov8" title="1">{
+                                        response.Status = "Bad Request"
+                                        response.Code = "404"
+                                        response.Message = "Invalid ID, Record Not found in DB..!!"
+                                        response.Data = employees
+                                        w.WriteHeader(http.StatusNotFound)
+                                        json.NewEncoder(w).Encode(response)
+                                }</span> else<span class="cov8" title="1"> {
+                                        if dberror != nil </span><span class="cov0" title="0">{
+                                                response.Status = "Time out"
+                                                response.Code = "504"
+                                                response.Message = "The server is unavailable to handle this request right now..!!"
+                                                w.WriteHeader(http.StatusGatewayTimeout)
+                                                json.NewEncoder(w).Encode(&amp;response)
+                                        }</span> else<span class="cov8" title="1"> {
+                                                employee, error := databaseconnection.UpdateByID(employee)
+                                                //fmt.Println(employee)
+                                                employees = append(employees, employee)
+                                                if error != nil </span><span class="cov0" title="0">{
+                                                        response.Status = "Time out"
+                                                        response.Code = "504"
+                                                        response.Message = "The server is unavailable to handle this request right now..!!"
+                                                        w.WriteHeader(http.StatusGatewayTimeout)
+                                                        json.NewEncoder(w).Encode(&amp;response)
+                                                }</span> else<span class="cov8" title="1"> {
+                                                        response.Status = "SUCCESS"
+                                                        response.Code = "202"
+                                                        response.Message = "Record Updated Successfuly..!!"
+                                                        response.Data = employees
+                                                        w.WriteHeader(http.StatusAccepted)
+                                                        json.NewEncoder(w).Encode(response)
+                                                }</span>
+                                        }
+                                }
+                        } else<span class="cov0" title="0"> {
+                                response.Status = "Bad Request"
+                                response.Code = "400"
+                                response.Message = "Request Missing ID or Name!!"
+                                response.Data = employees
+                                w.WriteHeader(http.StatusBadRequest)
+                                json.NewEncoder(w).Encode(response)
+                        }</span>
+                }
+        }
+
+        // var employee decodejson.Employee
+        // error := json.NewDecoder(r.Body).Decode(&amp;employee)
+        // if error == nil {
+        //         databaseconnection.GetConnection()
+        //         employee, error := databaseconnection.UpdateByID(employee)
+        //         if error == nil {
+        //                 fmt.Println("Employee Updated successfuly ", employee)
+        //         } else {
+        //                 fmt.Println("Error :- ", error)
+        //         }
+        //         json.NewEncoder(w).Encode(employee)
+        // }
+}
+
+// DeleteEmployee based on ID
+func DeleteEmployee(w http.ResponseWriter, r *http.Request) <span class="cov8" title="1">{
+        fmt.Println("Delete Employees  Implement")
+        //var employees []decodejson.Employee
+        //var employe decodejson.Employee
+        var response decodejson.Response
+        //databaseconnection.GetConnection()
+        params := mux.Vars(r)
+        fmt.Println(len(params))
+        fmt.Println(params["id"])
+        w.Header().Add("Content-Type", "application/json")
+        err := databaseconnection.GetConnection()
+        if err != nil </span><span class="cov0" title="0">{
+                response.Status = "Time out"
+                response.Code = "504"
+                response.Message = "The server is unavailable to handle this request right now..!!"
+                w.WriteHeader(http.StatusGatewayTimeout)
+                json.NewEncoder(w).Encode(&amp;response)
+        }</span> else<span class="cov8" title="1"> {
+                flag, error := databaseconnection.IsRecordExists(params["id"])
+                if error != nil </span><span class="cov0" title="0">{
+                        //        fmt.Println("In Error DB")
+                        response.Status = "Time out"
+                        response.Code = "504"
+                        response.Message = "The server is unavailable to handle this request right now..!!"
+                        w.WriteHeader(http.StatusGatewayTimeout)
+                        json.NewEncoder(w).Encode(&amp;response)
+                }</span>
+                <span class="cov8" title="1">if flag != false </span><span class="cov8" title="1">{
+                        error := databaseconnection.DeleteByID(params["id"])
+                        if error != nil </span><span class="cov0" title="0">{
+                                response.Status = "Time out"
+                                response.Code = "504"
+                                response.Message = "The server is unavailable to handle this request right now..!!"
+                                w.WriteHeader(http.StatusGatewayTimeout)
+                                json.NewEncoder(w).Encode(&amp;response)
+                        }</span> else<span class="cov8" title="1"> {
+                                response.Status = "SUCCESS"
+                                response.Code = "200"
+                                response.Message = "Record Deleted Successfuly..!!"
+                                w.WriteHeader(http.StatusOK)
+                                json.NewEncoder(w).Encode(&amp;response)
+                        }</span>
+                } else<span class="cov8" title="1"> {
+                        response.Status = "Failed"
+                        response.Code = "404"
+                        response.Message = "Invalid ID,Record Not Found in DB..!!"
+                        w.WriteHeader(http.StatusNotFound)
+                        json.NewEncoder(w).Encode(&amp;response)
+                }</span>
+        }
+}
+
+func getMux() *mux.Router <span class="cov8" title="1">{
+        log.Println("In getMux / Handler")
+        router := mux.NewRouter()
+        router.HandleFunc("/employees", GetEmployees).Methods("GET")
+        router.HandleFunc("/employee", AddNewEmployee).Methods("POST")
+        router.HandleFunc("/employee/{id}", GetEmployeeByID).Methods("GET")
+        router.HandleFunc("/updateemployee", UpdateEmployeeByID).Methods("PUT")
+        router.HandleFunc("/employee/{id}", DeleteEmployee).Methods("DELETE")
+        return router
+}</span>
+
+//main entry define all api uri and methods
+func main() <span class="cov0" title="0">{
+        log.Println("In Main/Controller")
+        log.Fatal(http.ListenAndServe(":8080", getMux()))
+}</span>
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
